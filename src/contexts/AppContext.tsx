@@ -163,7 +163,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const userData = await FirestoreService.getUserData(user.uid);
           console.log('Fetched user data from Firestore:', userData);
           if (userData) {
-            dispatch({ type: 'SET_LIKED_SONGS', payload: userData.likedSongs || [] });
+            // Merge liked songs from Firestore and local storage
+            const localLikedSongs = StorageService.getLikedSongs();
+            const mergedLikedSongs = [...userData.likedSongs];
+            localLikedSongs.forEach((localSong) => {
+              if (!mergedLikedSongs.find((song) => song.id === localSong.id)) {
+                mergedLikedSongs.push(localSong);
+              }
+            });
+            dispatch({ type: 'SET_LIKED_SONGS', payload: mergedLikedSongs });
             dispatch({ type: 'SET_THEME', payload: userData.preferences?.theme || 'dark' });
             dispatch({ type: 'SET_LANGUAGE', payload: userData.preferences?.language || 'all' });
           } else {
@@ -235,6 +243,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const signOutHandler = async () => {
     try {
+      // Save liked songs to local storage before sign out
+      StorageService.setLikedSongs(state.likedSongs);
       await signOut();
     } catch (error) {
       console.error('Sign out error:', error);
