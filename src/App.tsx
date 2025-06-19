@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './contexts/AppContext';
 import { Header } from './components/Layout/Header';
-import { FloatingParticles } from './components/Layout/FloatingParticles';
 import { SearchBar } from './components/Search/SearchBar';
 import { MusicPlayer } from './components/Player/MusicPlayer';
 import { MusicCard } from './components/Player/MusicCard';
@@ -71,7 +70,6 @@ function AppContent() {
     <div className={`min-h-screen bg-glass text-white ${state.theme}`}>
       {/* Animated background effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <FloatingParticles />
         <div className="absolute top-1/4 left-1/4 w-72 h-72 md:w-96 md:h-96 bg-glow-blue/40 rounded-full blur-3xl animate-pulse-slow" />
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 md:w-96 md:h-96 bg-glow-blue/30 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }} />
         <div className="absolute top-3/4 left-1/2 w-72 h-72 md:w-96 md:h-96 bg-glow-blue/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
