@@ -1,7 +1,3 @@
- import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-
-// https://vitejs.dev/config/
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
@@ -14,7 +10,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['@tsparticles/react', 'firebase/app', 'firebase/auth', 'firebase/firestore']
+      external: ['@tsparticles/react']
     },
     outDir: 'dist',
     emptyOutDir: true,
