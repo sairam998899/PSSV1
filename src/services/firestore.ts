@@ -1,37 +1,37 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { YouTubeVideo, Theme, Language } from '../types';
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { app } from '../firebase';
+import { YouTubeVideo } from '../types';
 
-type UserData = {
-  likedSongs: YouTubeVideo[];
-  preferences: {
-    theme: Theme;
-    language: Language;
-  };
-};
+const db = getFirestore(app);
 
 export class FirestoreService {
-  static async getUserData(userId: string): Promise<UserData | null> {
+  static async getUserLikedSongs(userId: string): Promise<YouTubeVideo[]> {
     try {
-      const docRef = doc(db, 'users', userId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        return docSnap.data() as UserData;
-      } else {
-        return null;
+      console.log(`FirestoreService: Fetching liked songs for user ${userId}`);
+      const userDocRef = doc(db, 'users', userId);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const data = userDocSnap.data();
+        if (data.likedSongs && Array.isArray(data.likedSongs)) {
+          console.log(`FirestoreService: Found liked songs for user ${userId}`, data.likedSongs);
+          return data.likedSongs as YouTubeVideo[];
+        }
       }
+      console.log(`FirestoreService: No liked songs found for user ${userId}`);
+      return [];
     } catch (error) {
-      console.error('Error getting user data from Firestore:', error);
-      return null;
+      console.error('Error getting liked songs from Firestore:', error);
+      return [];
     }
   }
 
-  static async setUserData(userId: string, data: UserData): Promise<void> {
+  static async setUserLikedSongs(userId: string, likedSongs: YouTubeVideo[]): Promise<void> {
     try {
-      const docRef = doc(db, 'users', userId);
-      await setDoc(docRef, data, { merge: true });
+      console.log(`FirestoreService: Setting liked songs for user ${userId}`, likedSongs);
+      const userDocRef = doc(db, 'users', userId);
+      await setDoc(userDocRef, { likedSongs }, { merge: true });
     } catch (error) {
-      console.error('Error setting user data to Firestore:', error);
+      console.error('Error setting liked songs to Firestore:', error);
     }
   }
 }

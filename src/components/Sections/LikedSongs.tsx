@@ -5,6 +5,8 @@ import { TrackCard } from '../Tracks/TrackCard';
 export default function LikedSongs() {
   const { state, playTrack, toggleLikeSong } = useApp();
 
+  console.log('LikedSongs component - likedSongs state:', state.likedSongs);
+
   if (!state.likedSongs || state.likedSongs.length === 0) {
     return (
       <div className="text-center text-gray-400 mt-8">

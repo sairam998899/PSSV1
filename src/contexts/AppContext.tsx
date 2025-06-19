@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AppState, YouTubeVideo, Track, Theme, Language } from '../types';
 import { StorageService } from '../services/storage';
-import { RealtimeDatabaseService } from '../services/realtimeDatabase';
+import { FirestoreService } from '../services/firestore';
 import { signInWithGoogle, signOut, onUserChanged } from '../firebase';
 
 type AppAction =
@@ -94,7 +94,7 @@ function appReducer(state: AppState & { user: any | null }, action: AppAction): 
       return { ...state, trending: action.payload };
     case 'SET_LIKED_SONGS':
       if (state.user) {
-        RealtimeDatabaseService.setUserLikedSongs(state.user.uid, action.payload);
+        FirestoreService.setUserLikedSongs(state.user.uid, action.payload);
       } else {
         StorageService.setLikedSongs(action.payload);
       }
@@ -153,29 +153,49 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [state.language]);
 
   useEffect(() => {
+    let previousUserId: string | null = null;
+
     const unsubscribe = onUserChanged(async (user) => {
       console.log('Firebase auth state changed:', user);
-      dispatch({ type: 'SET_USER', payload: user });
+
       if (user) {
         try {
-          const likedSongs = await RealtimeDatabaseService.getUserLikedSongs(user.uid);
-          console.log('Fetched liked songs from Realtime Database:', likedSongs);
-          if (Array.isArray(likedSongs) && likedSongs.length > 0) {
-            dispatch({ type: 'SET_LIKED_SONGS', payload: likedSongs });
-            // You can add theme and language preferences handling here if stored in Realtime Database
+          // If user changed from anonymous to authenticated Google user, merge liked songs
+          if (previousUserId && previousUserId !== user.uid) {
+            const previousLikedSongs = await FirestoreService.getUserLikedSongs(previousUserId);
+            const currentLikedSongs = await FirestoreService.getUserLikedSongs(user.uid);
+            const mergedLikedSongsMap = new Map<string, YouTubeVideo>();
+
+            previousLikedSongs.forEach(song => mergedLikedSongsMap.set(song.id, song));
+            currentLikedSongs.forEach(song => mergedLikedSongsMap.set(song.id, song));
+
+            const mergedLikedSongs = Array.from(mergedLikedSongsMap.values());
+
+            await FirestoreService.setUserLikedSongs(user.uid, mergedLikedSongs);
+            dispatch({ type: 'SET_LIKED_SONGS', payload: mergedLikedSongs });
           } else {
-            console.log('No liked songs found in Realtime Database or empty array');
-            dispatch({ type: 'SET_LIKED_SONGS', payload: [] });
+            const likedSongs = await FirestoreService.getUserLikedSongs(user.uid);
+            console.log('Fetched liked songs from Firestore:', likedSongs);
+            if (Array.isArray(likedSongs) && likedSongs.length > 0) {
+              dispatch({ type: 'SET_LIKED_SONGS', payload: likedSongs });
+            } else {
+              console.log('No liked songs found in Firestore or empty array');
+              dispatch({ type: 'SET_LIKED_SONGS', payload: [] });
+            }
           }
         } catch (error) {
-          console.error('Error fetching user data from Realtime Database:', error);
+          console.error('Error fetching user data from Firestore:', error);
         }
       } else {
         // Clear local storage liked songs on sign-out to avoid conflicts
         StorageService.setLikedSongs([]);
         dispatch({ type: 'LOAD_STORAGE_DATA' });
       }
+
+      previousUserId = user ? user.uid : null;
+      dispatch({ type: 'SET_USER', payload: user });
     });
+
     return () => unsubscribe();
   }, []);
 
@@ -226,9 +246,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogleHandler = async () => {
     try {
+      console.log('Attempting Google sign-in');
       await signInWithGoogle();
+      console.log('Google sign-in completed');
     } catch (error) {
       console.error('Google sign-in error:', error);
+      alert('Google sign-in failed. Please check console for details.');
     }
   };
 
