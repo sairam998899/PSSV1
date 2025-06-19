@@ -5,7 +5,7 @@ import { useApp } from '../../contexts/AppContext';
 import { Theme, Language } from '../../types';
 
 export function Header() {
-  const { state, dispatch } = useApp();
+  const { state, dispatch, signInWithGoogle, signOutUser } = useApp();
 
   const themes: { value: Theme; label: string; gradient: string }[] = [
     { value: 'dark', label: 'Dark', gradient: 'from-gray-900 to-gray-800' },
@@ -86,6 +86,24 @@ export function Header() {
                 ))}
               </div>
             </div>
+
+            {/* Google Sign-In / Sign-Out Button */}
+            {state.user ? (
+              <button
+                onClick={signOutUser}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                title={`Sign out ${state.user.displayName || state.user.email}`}
+              >
+                Sign Out
+              </button>
+            ) : (
+              <button
+                onClick={signInWithGoogle}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+              >
+                Sign In with Google
+              </button>
+            )}
           </div>
         </div>
       </div>
