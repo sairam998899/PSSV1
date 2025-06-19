@@ -1,0 +1,32 @@
+const { state, dispatch, toggleLikeSong, playTrack, setCardMinimized, setUserMinimized } = useApp();
+  const playerRef = useRef<HTMLDivElement>(null);
+  const [player, setPlayer] = useState<any>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(50);
+  const [isReady, setIsReady] = useState(false);
+  const [lastSkipBackPress, setLastSkipBackPress] = useState<number | null>(null);
+=======
+interface MusicPlayerProps {
+  onToggleMaximize: () => void;
+  cardMinimizedByUser: boolean;
+  cardMinimized: boolean;
+  setCardMinimizedByUser: React.Dispatch<React.SetStateAction<boolean>>;
+  setCardMinimized: (minimized: boolean) => void;
+}
+
+export function MusicPlayer({
+  onToggleMaximize,
+  cardMinimizedByUser,
+  cardMinimized,
+  setCardMinimizedByUser,
+  setCardMinimized,
+}: MusicPlayerProps) {
+  const { state, dispatch, toggleLikeSong, playTrack, setUserMinimized } = useApp();
+  const playerRef = useRef<HTMLDivElement>(null);
+  const [player, setPlayer] = useState<any>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(50);
+  const [isReady, setIsReady] = useState(false);
+  const [lastSkipBackPress, setLastSkipBackPress] = useState<number | null>(null);

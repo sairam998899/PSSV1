@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 20s linear infinite;
+  white-space: nowrap;
+}
+
+@layer base {
+  body {
+    background-color: #001021;
+    color: white;
+  }
+}
+
+.dark {
+  background-color: #001021;
+  color: white;
+}
+
+.neon {
+  background: linear-gradient(145deg, #001021, #0a4d4d);
+  color: #00fff7;
+}
+
+.purple {
+  background: linear-gradient(145deg, #1e3a8a, #3b82f6);
+  color: #bfdbfe;
+}

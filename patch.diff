@@ -1,0 +1,39 @@
+return { ...state, likedSongs: action.payload };
+=======
+case 'SET_LIKED_SONGS':
+  console.log('Setting liked songs:', action.payload);
+  return { ...state, likedSongs: action.payload };
+>>>>>>> REPLACE
+
+<<<<<<< SEARCH
+case 'LOAD_STORAGE_DATA':
+  return {
+    ...state,
+    recentlyPlayed: StorageService.getRecentlyPlayed(),
+    history: StorageService.getHistory(),
+    likedSongs: StorageService.getLikedSongs(),
+    theme: StorageService.getTheme() as Theme,
+    language: StorageService.getLanguage() as Language,
+  };
+=======
+case 'LOAD_STORAGE_DATA':
+  let likedSongsData = [];
+  try {
+    likedSongsData = StorageService.getLikedSongs();
+    if (!Array.isArray(likedSongsData)) {
+      console.warn('Liked songs data is not an array, resetting to empty array.');
+      likedSongsData = [];
+    }
+  } catch (error) {
+    console.error('Error loading liked songs from storage:', error);
+    likedSongsData = [];
+  }
+  console.log('Loaded liked songs from storage:', likedSongsData);
+  return {
+    ...state,
+    recentlyPlayed: StorageService.getRecentlyPlayed(),
+    history: StorageService.getHistory(),
+    likedSongs: likedSongsData,
+    theme: StorageService.getTheme() as Theme,
+    language: StorageService.getLanguage() as Language,
+  };
