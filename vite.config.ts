@@ -9,7 +9,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['@tsparticles/react']
+      external: ['@tsparticles/react', 'firebase/app', 'firebase/auth', 'firebase/firestore']
     }
   }
 });
