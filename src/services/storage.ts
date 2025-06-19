@@ -1,4 +1,4 @@
-import { Track } from '../types';
+import { Track, YouTubeVideo } from '../types';
 
 const RECENTLY_PLAYED_KEY = 'neontunes_recently_played';
 const HISTORY_KEY = 'neontunes_history';
@@ -20,6 +20,23 @@ export class StorageService {
       localStorage.setItem(RECENTLY_PLAYED_KEY, JSON.stringify(tracks.slice(0, 10)));
     } catch (error) {
       console.error('Failed to save recently played:', error);
+    }
+  }
+
+  static getLikedSongs(): YouTubeVideo[] {
+    try {
+      const data = localStorage.getItem('neontunes_liked_songs');
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  static setLikedSongs(songs: YouTubeVideo[]): void {
+    try {
+      localStorage.setItem('neontunes_liked_songs', JSON.stringify(songs));
+    } catch (error) {
+      console.error('Failed to save liked songs:', error);
     }
   }
 

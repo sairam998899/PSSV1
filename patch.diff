@@ -1,39 +1,32 @@
-return { ...state, likedSongs: action.payload };
+const { state, dispatch, toggleLikeSong, playTrack, setCardMinimized, setUserMinimized } = useApp();
+  const playerRef = useRef<HTMLDivElement>(null);
+  const [player, setPlayer] = useState<any>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(50);
+  const [isReady, setIsReady] = useState(false);
+  const [lastSkipBackPress, setLastSkipBackPress] = useState<number | null>(null);
 =======
-case 'SET_LIKED_SONGS':
-  console.log('Setting liked songs:', action.payload);
-  return { ...state, likedSongs: action.payload };
->>>>>>> REPLACE
+interface MusicPlayerProps {
+  onToggleMaximize: () => void;
+  cardMinimizedByUser: boolean;
+  cardMinimized: boolean;
+  setCardMinimizedByUser: React.Dispatch<React.SetStateAction<boolean>>;
+  setCardMinimized: (minimized: boolean) => void;
+}
 
-<<<<<<< SEARCH
-case 'LOAD_STORAGE_DATA':
-  return {
-    ...state,
-    recentlyPlayed: StorageService.getRecentlyPlayed(),
-    history: StorageService.getHistory(),
-    likedSongs: StorageService.getLikedSongs(),
-    theme: StorageService.getTheme() as Theme,
-    language: StorageService.getLanguage() as Language,
-  };
-=======
-case 'LOAD_STORAGE_DATA':
-  let likedSongsData = [];
-  try {
-    likedSongsData = StorageService.getLikedSongs();
-    if (!Array.isArray(likedSongsData)) {
-      console.warn('Liked songs data is not an array, resetting to empty array.');
-      likedSongsData = [];
-    }
-  } catch (error) {
-    console.error('Error loading liked songs from storage:', error);
-    likedSongsData = [];
-  }
-  console.log('Loaded liked songs from storage:', likedSongsData);
-  return {
-    ...state,
-    recentlyPlayed: StorageService.getRecentlyPlayed(),
-    history: StorageService.getHistory(),
-    likedSongs: likedSongsData,
-    theme: StorageService.getTheme() as Theme,
-    language: StorageService.getLanguage() as Language,
-  };
+export function MusicPlayer({
+  onToggleMaximize,
+  cardMinimizedByUser,
+  cardMinimized,
+  setCardMinimizedByUser,
+  setCardMinimized,
+}: MusicPlayerProps) {
+  const { state, dispatch, toggleLikeSong, playTrack, setUserMinimized } = useApp();
+  const playerRef = useRef<HTMLDivElement>(null);
+  const [player, setPlayer] = useState<any>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(50);
+  const [isReady, setIsReady] = useState(false);
+  const [lastSkipBackPress, setLastSkipBackPress] = useState<number | null>(null);

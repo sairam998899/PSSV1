@@ -10,7 +10,7 @@ export function Header() {
   const themes: { value: Theme; label: string; gradient: string }[] = [
     { value: 'dark', label: 'Dark', gradient: 'from-gray-900 to-gray-800' },
     { value: 'neon', label: 'Neon', gradient: 'from-purple-900 via-blue-900 to-cyan-900' },
-    { value: 'purple', label: 'Purple', gradient: 'from-purple-800 to-pink-800' },
+    { value: 'purple', label: 'Blue', gradient: 'from-purple-800 to-pink-800' },
   ];
 
   const languages: { value: Language; label: string }[] = [
@@ -70,7 +70,7 @@ export function Header() {
             <div className="relative group">
               <button className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-glass-light backdrop-blur-sm border border-white/10 hover:border-glow-blue/50 transition-all">
                 <Palette className="h-4 w-4" />
-                <span className="text-sm capitalize">{state.theme}</span>
+                <span className="text-sm capitalize">{themes.find(t => t.value === state.theme)?.label || state.theme}</span>
               </button>
               <div className="absolute right-0 top-full mt-2 w-32 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 py-2 opacity-0 group-hover:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto">
                 {themes.map((theme) => (
@@ -78,7 +78,7 @@ export function Header() {
                     key={theme.value}
                     onClick={() => dispatch({ type: 'SET_THEME', payload: theme.value })}
                     className={`w-full text-left px-4 py-2 hover:bg-white/10 transition-colors ${
-                      state.theme === theme.value ? 'text-glow-blue' : 'text-white'
+                      state.theme === theme.value ? 'text-glow-blue' : 'text-blue-500'
                     }`}
                   >
                     {theme.label}

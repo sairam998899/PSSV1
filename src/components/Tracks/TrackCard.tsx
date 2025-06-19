@@ -1,18 +1,40 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Play, Clock, Eye } from 'lucide-react';
+import { Play, Clock, Eye, Video } from 'lucide-react';
 import { YouTubeVideo } from '../../types';
 import { useApp } from '../../contexts/AppContext';
+
+import { Heart } from 'lucide-react';
 
 interface TrackCardProps {
   track: YouTubeVideo;
   index: number;
   showPlayedAt?: boolean;
   playedAt?: Date;
+  onPlay?: () => void;
+  onToggleLike?: () => void;
+  isLiked?: boolean;
+  onVideoPlay?: () => void;
 }
 
-export function TrackCard({ track, index, showPlayedAt, playedAt }: TrackCardProps) {
+export function TrackCard({ track, index, showPlayedAt, playedAt, onPlay, onToggleLike, isLiked, onVideoPlay }: TrackCardProps) {
   const { playTrack } = useApp();
+
+  const handlePlay = () => {
+    if (onPlay) {
+      onPlay();
+    } else {
+      playTrack(track);
+    }
+  };
+
+  const handleVideoPlay = () => {
+    if (onVideoPlay) {
+      onVideoPlay();
+    } else {
+      playTrack(track, true); // pass true to indicate video play
+    }
+  };
 
   return (
     <motion.div
@@ -36,7 +58,7 @@ export function TrackCard({ track, index, showPlayedAt, playedAt }: TrackCardPro
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => playTrack(track)}
+            onClick={handlePlay}
             className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 transition-all"
           >
             <Play className="h-8 w-8 text-white ml-1" fill="currentColor" />
@@ -73,14 +95,37 @@ export function TrackCard({ track, index, showPlayedAt, playedAt }: TrackCardPro
           </div>
         </div>
 
+        {/* Like Button */}
+        {onToggleLike && (
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onToggleLike}
+            className="flex-shrink-0 p-2 rounded-full bg-glass-light hover:bg-glow-blue/20 transition-colors"
+          >
+            <Heart className={`h-5 w-5 ${isLiked ? 'text-glow-blue' : 'text-gray-400'}`} />
+          </motion.button>
+        )}
+
         {/* Quick Play Button */}
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          onClick={() => playTrack(track)}
+          onClick={handlePlay}
           className="flex-shrink-0 p-3 rounded-full bg-gradient-to-r from-glow-blue to-glow-green opacity-0 group-hover:opacity-100 transition-all hover:shadow-lg hover:shadow-glow-blue"
         >
           <Play className="h-5 w-5 text-white ml-0.5" fill="currentColor" />
+        </motion.button>
+
+        {/* Video Play Button */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={handleVideoPlay}
+          className="flex-shrink-0 p-3 rounded-full bg-gradient-to-r from-glow-red to-glow-pink opacity-0 group-hover:opacity-100 transition-all hover:shadow-lg hover:shadow-glow-red ml-2"
+          title="Play Video"
+        >
+          <Video className="h-5 w-5 text-white" />
         </motion.button>
       </div>
     </motion.div>

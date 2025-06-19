@@ -1,25 +1,31 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AppProvider } from './contexts/AppContext';
+import { AppProvider, useApp } from './contexts/AppContext';
 import { Header } from './components/Layout/Header';
+import { FloatingParticles } from './components/Layout/FloatingParticles';
 import { SearchBar } from './components/Search/SearchBar';
 import { MusicPlayer } from './components/Player/MusicPlayer';
+import { MusicCard } from './components/Player/MusicCard';
 import { RecentlyPlayed } from './components/Sections/RecentlyPlayed';
 import { SearchResults } from './components/Sections/SearchResults';
 import { Trending } from './components/Sections/Trending';
 import { History } from './components/Sections/History';
-import { Home, Search, TrendingUp, Clock } from 'lucide-react';
+import LikedSongs from './components/Sections/LikedSongs';
+import { Home, Search, TrendingUp, Clock, Heart } from 'lucide-react';
 
-type Tab = 'home' | 'search' | 'trending' | 'history';
+type Tab = 'home' | 'search' | 'trending' | 'history' | 'liked';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
+  const { state, setCardMinimized } = useApp();
+  const [cardMinimizedByUser, setCardMinimizedByUser] = useState(false);
 
   const tabs = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'search', label: 'Search', icon: Search },
     { id: 'trending', label: 'Trending', icon: TrendingUp },
     { id: 'history', label: 'History', icon: Clock },
+    { id: 'liked', label: 'Liked Songs', icon: Heart },
   ];
 
   const renderContent = () => {
@@ -37,15 +43,35 @@ function AppContent() {
         return <Trending />;
       case 'history':
         return <History />;
+      case 'liked':
+        return <LikedSongs />;
       default:
         return <RecentlyPlayed />;
     }
   };
 
+  console.log('App render - currentTrack:', state.currentTrack);
+  console.log('App render - isPlaying:', state.isPlaying);
+  console.log('App render - cardMinimized:', state.cardMinimized);
+  console.log('App render - cardMinimizedByUser:', cardMinimizedByUser);
+
+  // Reset cardMinimized and cardMinimizedByUser when a new track plays
+  React.useEffect(() => {
+    setCardMinimized(false);
+    setCardMinimizedByUser(false);
+  }, [state.currentTrack]);
+
+  // Handler to minimize card by user
+  const handleToggleMinimize = () => {
+    setCardMinimized(true);
+    setCardMinimizedByUser(true);
+  };
+
   return (
-    <div className="min-h-screen bg-glass text-white">
+    <div className={`min-h-screen bg-glass text-white ${state.theme}`}>
       {/* Animated background effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <FloatingParticles />
         <div className="absolute top-1/4 left-1/4 w-72 h-72 md:w-96 md:h-96 bg-glow-blue/40 rounded-full blur-3xl animate-pulse-slow" />
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 md:w-96 md:h-96 bg-glow-blue/30 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }} />
         <div className="absolute top-3/4 left-1/2 w-72 h-72 md:w-96 md:h-96 bg-glow-blue/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
@@ -105,7 +131,19 @@ function AppContent() {
         </AnimatePresence>
       </main>
 
-      <MusicPlayer />
+      {state.currentTrack && !cardMinimizedByUser && (
+        <MusicCard onToggleMinimize={handleToggleMinimize} />
+      )}
+
+      <MusicPlayer
+        onToggleMaximize={() => {
+          setCardMinimizedByUser(false);
+        }}
+        cardMinimizedByUser={cardMinimizedByUser}
+        cardMinimized={state.cardMinimized}
+        setCardMinimizedByUser={setCardMinimizedByUser}
+        setCardMinimized={setCardMinimized}
+      />
     </div>
   );
 }
