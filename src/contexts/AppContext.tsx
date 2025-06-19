@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AppState, YouTubeVideo, Track, Theme, Language } from '../types';
 import { StorageService } from '../services/storage';
-import { FirestoreService } from '../services/firestore';
+import { RealtimeDatabaseService } from '../services/realtimeDatabase';
 import { signInWithGoogle, signOut, onUserChanged } from '../firebase';
 
 type AppAction =
@@ -100,10 +100,7 @@ function appReducer(state: AppState & { user: any | null }, action: AppAction): 
       return { ...state, trending: action.payload };
     case 'SET_LIKED_SONGS':
       if (state.user) {
-        FirestoreService.setUserData(state.user.uid, {
-          likedSongs: action.payload,
-          preferences: { theme: state.theme, language: state.language },
-        });
+        RealtimeDatabaseService.setUserLikedSongs(state.user.uid, action.payload);
       } else {
         StorageService.setLikedSongs(action.payload);
       }
@@ -160,17 +157,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_USER', payload: user });
       if (user) {
         try {
-          const userData = await FirestoreService.getUserData(user.uid);
-          console.log('Fetched user data from Firestore:', userData);
-          if (userData) {
-            // Use only Firestore liked songs, ignore local storage
-            dispatch({ type: 'SET_LIKED_SONGS', payload: userData.likedSongs || [] });
-            dispatch({ type: 'SET_THEME', payload: userData.preferences?.theme || 'dark' });
-            dispatch({ type: 'SET_LANGUAGE', payload: userData.preferences?.language || 'all' });
+          const likedSongs = await RealtimeDatabaseService.getUserLikedSongs(user.uid);
+          console.log('Fetched liked songs from Realtime Database:', likedSongs);
+          if (likedSongs) {
+            dispatch({ type: 'SET_LIKED_SONGS', payload: likedSongs });
+            // You can add theme and language preferences handling here if stored in Realtime Database
           } else {
+            console.log('No liked songs found in Realtime Database');
             dispatch({ type: 'SET_LIKED_SONGS', payload: [] });
-            dispatch({ type: 'SET_THEME', payload: 'dark' });
-            dispatch({ type: 'SET_LANGUAGE', payload: 'all' });
           }
         } catch (error) {
           console.error('Error fetching user data from Firestore:', error);
