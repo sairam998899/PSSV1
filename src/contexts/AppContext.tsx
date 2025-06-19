@@ -79,19 +79,13 @@ function appReducer(state: AppState & { user: any | null }, action: AppAction): 
     case 'SET_THEME':
       StorageService.setTheme(action.payload);
       if (state.user) {
-        FirestoreService.setUserData(state.user.uid, {
-          likedSongs: state.likedSongs,
-          preferences: { theme: action.payload, language: state.language },
-        });
+        RealtimeDatabaseService.setUserLikedSongs(state.user.uid, state.likedSongs);
       }
       return { ...state, theme: action.payload };
     case 'SET_LANGUAGE':
       StorageService.setLanguage(action.payload);
       if (state.user) {
-        FirestoreService.setUserData(state.user.uid, {
-          likedSongs: state.likedSongs,
-          preferences: { theme: state.theme, language: action.payload },
-        });
+        RealtimeDatabaseService.setUserLikedSongs(state.user.uid, state.likedSongs);
       }
       return { ...state, language: action.payload };
     case 'SET_SEARCH_RESULTS':
@@ -141,12 +135,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function fetchLanguageSuggestions() {
-      if (state.language === 'all') {
+      try {
+        let suggestions = [];
+        if (state.language === 'all') {
+          // Fetch songs without language filter or from multiple languages
+          suggestions = await YouTubeService.searchVideos('songs', 20);
+        } else {
+          suggestions = await YouTubeService.searchVideos('songs', 20, state.language);
+        }
+        dispatch({ type: 'SET_LANGUAGE_SUGGESTIONS', payload: suggestions });
+      } catch (error) {
+        console.error('Error fetching language suggestions:', error);
         dispatch({ type: 'SET_LANGUAGE_SUGGESTIONS', payload: [] });
-        return;
       }
-      const suggestions = await YouTubeService.searchVideos('songs', 20, state.language);
-      dispatch({ type: 'SET_LANGUAGE_SUGGESTIONS', payload: suggestions });
     }
     fetchLanguageSuggestions();
   }, [state.language]);
