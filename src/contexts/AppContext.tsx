@@ -160,15 +160,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         try {
           const likedSongs = await RealtimeDatabaseService.getUserLikedSongs(user.uid);
           console.log('Fetched liked songs from Realtime Database:', likedSongs);
-          if (likedSongs) {
+          if (Array.isArray(likedSongs) && likedSongs.length > 0) {
             dispatch({ type: 'SET_LIKED_SONGS', payload: likedSongs });
             // You can add theme and language preferences handling here if stored in Realtime Database
           } else {
-            console.log('No liked songs found in Realtime Database');
+            console.log('No liked songs found in Realtime Database or empty array');
             dispatch({ type: 'SET_LIKED_SONGS', payload: [] });
           }
         } catch (error) {
-          console.error('Error fetching user data from Firestore:', error);
+          console.error('Error fetching user data from Realtime Database:', error);
         }
       } else {
         // Clear local storage liked songs on sign-out to avoid conflicts
@@ -208,6 +208,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } else {
       updatedLikedSongs.splice(index, 1);
     }
+    console.log('Toggling liked songs, updated list:', updatedLikedSongs);
     dispatch({ type: 'SET_LIKED_SONGS', payload: updatedLikedSongs });
   };
 

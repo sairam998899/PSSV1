@@ -27,8 +27,8 @@ export function Header() {
       animate={{ y: 0, opacity: 1 }}
       className="sticky top-0 z-50 backdrop-blur-xl bg-glass-medium border-b border-white/10"
     >
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
           <motion.div
             className="flex items-center space-x-3"
             whileHover={{ scale: 1.05 }}
@@ -37,21 +37,21 @@ export function Header() {
               <Music className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-glow-blue to-neon-aqua bg-clip-text text-transparent dark:text-white text-white">
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-glow-blue to-neon-aqua bg-clip-text text-transparent dark:text-white text-white">
                 HPSS
               </h1>
               <p className="text-xs text-gray-400">Hanumanthu Private streaming service</p>
             </div>
           </motion.div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-wrap items-center space-x-2 sm:space-x-4">
             {/* Language Selector */}
             <div className="relative group">
-              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-glass-light backdrop-blur-sm border border-white/10 hover:border-glow-blue/50 transition-all">
+              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-glass-light backdrop-blur-sm border border-white/10 hover:border-glow-blue/50 transition-all text-sm">
                 <Globe className="h-4 w-4" />
-                <span className="text-sm">{languages.find(l => l.value === state.language)?.label}</span>
+                <span>{languages.find(l => l.value === state.language)?.label}</span>
               </button>
-              <div className="absolute right-0 top-full mt-2 w-48 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 py-2 opacity-0 group-hover:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto">
+              <div className="absolute right-0 top-full mt-2 w-48 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 py-2 opacity-0 group-hover:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto z-50">
                 {languages.map((lang) => (
                   <button
                     key={lang.value}
@@ -68,11 +68,11 @@ export function Header() {
 
             {/* Theme Selector */}
             <div className="relative group">
-              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-glass-light backdrop-blur-sm border border-white/10 hover:border-glow-blue/50 transition-all">
+              <button className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-glass-light backdrop-blur-sm border border-white/10 hover:border-glow-blue/50 transition-all text-sm">
                 <Palette className="h-4 w-4" />
-                <span className="text-sm capitalize">{themes.find(t => t.value === state.theme)?.label || state.theme}</span>
+                <span className="capitalize">{themes.find(t => t.value === state.theme)?.label || state.theme}</span>
               </button>
-              <div className="absolute right-0 top-full mt-2 w-32 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 py-2 opacity-0 group-hover:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto">
+              <div className="absolute right-0 top-full mt-2 w-32 bg-black/90 backdrop-blur-xl rounded-xl border border-white/10 py-2 opacity-0 group-hover:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto z-50">
                 {themes.map((theme) => (
                   <button
                     key={theme.value}
@@ -91,7 +91,7 @@ export function Header() {
             {state.user ? (
               <button
                 onClick={signOutUser}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition text-sm"
                 title={`Sign out ${state.user.displayName || state.user.email}`}
               >
                 Sign Out
@@ -99,7 +99,7 @@ export function Header() {
             ) : (
               <button
                 onClick={signInWithGoogle}
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition text-sm"
               >
                 Sign In with Google
               </button>

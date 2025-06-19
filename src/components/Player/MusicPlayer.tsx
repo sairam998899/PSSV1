@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, SkipForward, SkipBack, Volume2, Heart } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { YouTubeService } from '../../services/youtube';
-import { FloatingParticles } from '../Layout/FloatingParticles';
 import { MusicCard } from './MusicCard';
 
 declare global {
@@ -276,7 +275,7 @@ export function MusicPlayer({
               <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-between rounded-2xl p-4 border border-white/10 gap-4">
                 <div ref={playerRef} style={{ height: 0, width: 0, overflow: 'hidden' }} />
 
-                <div className="flex items-center space-x-4 flex-1 min-w-0 min-w-[150px] relative rounded-xl">
+                <div className="flex flex-col sm:flex-row items-center space-x-0 sm:space-x-4 flex-1 min-w-0 min-w-[150px] relative rounded-xl">
                   <motion.img
                     src={state.currentTrack?.thumbnail}
                     alt={state.currentTrack?.title}
@@ -294,7 +293,7 @@ export function MusicPlayer({
                       }
                     }}
                   />
-                  <div className="min-w-0 flex-1 z-20 relative">
+                  <div className="min-w-0 flex-1 z-20 relative mt-2 sm:mt-0">
                     <h3 className="text-white font-semibold truncate text-sm sm:text-base">
                       {state.currentTrack?.title}
                     </h3>
@@ -305,7 +304,7 @@ export function MusicPlayer({
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    className="p-1 sm:p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors z-20"
+                    className="p-1 sm:p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors z-20 mt-2 sm:mt-0"
                     onClick={() => {
                       if (state.currentTrack) {
                         toggleLikeSong(state.currentTrack);
