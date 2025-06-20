@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './contexts/AppContext';
 import { Header } from './components/Layout/Header';
@@ -11,6 +11,7 @@ import { Trending } from './components/Sections/Trending';
 import { History } from './components/Sections/History';
 import LikedSongs from './components/Sections/LikedSongs';
 import { Home, Search, TrendingUp, Clock, Heart } from 'lucide-react';
+import MobilePrompt from './components/Layout/MobilePrompt';
 
 type Tab = 'home' | 'search' | 'trending' | 'history' | 'liked';
 
@@ -18,6 +19,8 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const { state, setCardMinimized } = useApp();
   const [cardMinimizedByUser, setCardMinimizedByUser] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
 
   const tabs = [
     { id: 'home', label: 'Home', icon: Home },
@@ -26,6 +29,16 @@ function AppContent() {
     { id: 'history', label: 'History', icon: Clock },
     { id: 'liked', label: 'Liked Songs', icon: Heart },
   ];
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+    const mobileRegex = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+    const detectedMobile = mobileRegex.test(userAgent.toLowerCase());
+    setIsMobile(detectedMobile);
+    if (detectedMobile) {
+      setShowPrompt(true);
+    }
+  }, []);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -66,8 +79,20 @@ function AppContent() {
     setCardMinimizedByUser(true);
   };
 
+  const handleClosePrompt = () => {
+    setShowPrompt(false);
+  };
+
   return (
-    <div className={`min-h-screen bg-glass text-white ${state.theme}`}>
+    <div
+      className={`min-h-screen bg-glass text-white ${state.theme}`}
+      style={{
+        transform: isMobile ? 'scale(0.9)' : 'none',
+        transformOrigin: 'top center',
+        width: isMobile ? '100vw' : 'auto',
+        overflowX: isMobile ? 'hidden' : 'visible',
+      }}
+    >
       {/* Animated background effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-72 h-72 md:w-96 md:h-96 bg-glow-blue/40 rounded-full blur-3xl animate-pulse-slow" />
@@ -142,6 +167,8 @@ function AppContent() {
         setCardMinimizedByUser={setCardMinimizedByUser}
         setCardMinimized={setCardMinimized}
       />
+
+      {showPrompt && <MobilePrompt onClose={handleClosePrompt} />}
     </div>
   );
 }
