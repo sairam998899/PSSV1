@@ -2,6 +2,10 @@ const API_KEYS = [
   'AIzaSyCQsiLmLgazFbaWG9hOil-NegNeyVQwqAE',
   'AIzaSyDpcfWFUg0Mhs1thnHCEE8CchODE1VAaoQ',
   'AIzaSyAYf_kdEGmIdsCufZVl52sOKHw5XWvgwjY',
+  'AIzaSyDnYcay_PE9STI1NDomtbbHJ-SmzLzuqzs',
+  'AIzaSyBrOOTYSy4dGwDC2hFzvzZCUg5NtjF6kik',
+  'AIzaSyC-hq4Qo3BGSPRzQNMH7Qb4bAvWPSbppoQ',
+
   // Add more API keys here as needed
 ];
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
