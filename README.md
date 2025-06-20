@@ -56,7 +56,7 @@ Edit
 ## 📸 Screenshots
 | Home Page | Liked Songs | Search Results |
 |----------|-------------|----------------|
-| ![home](./assets/home.png) | ![liked](./liked.png) | ![search](./assets/search.png) |
+| ![home](./home.png) | ![liked](./liked.png) | ![search](./search.png) |
 
 ---
 
