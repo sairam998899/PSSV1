@@ -20,9 +20,10 @@ type AppAction =
   | { type: 'SET_LANGUAGE_SUGGESTIONS'; payload: YouTubeVideo[] }
   | { type: 'SET_THEME_LABEL'; payload: string }
   | { type: 'SET_USER'; payload: any }
-  | { type: 'LOAD_STORAGE_DATA' };
+  | { type: 'LOAD_STORAGE_DATA' }
+  | { type: 'SET_LOADING'; payload: boolean };
 
-const initialState: AppState & { user: any | null } = {
+const initialState: AppState & { user: any | null; loading: boolean } = {
   currentTrack: null,
   isPlaying: false,
   recentlyPlayed: [],
@@ -40,6 +41,7 @@ const initialState: AppState & { user: any | null } = {
   userMinimized: false,
   themeLabel: 'dark',
   user: null,
+  loading: false,
 };
 
 const AppContext = createContext<{
@@ -66,7 +68,7 @@ const AppContext = createContext<{
   signOutUser: async () => {},
 });
 
-function appReducer(state: AppState & { user: any | null }, action: AppAction): AppState & { user: any | null } {
+function appReducer(state: AppState & { user: any | null; loading: boolean }, action: AppAction): AppState & { user: any | null; loading: boolean } {
   switch (action.type) {
     case 'SET_CURRENT_TRACK':
       return { ...state, currentTrack: action.payload };
@@ -79,13 +81,13 @@ function appReducer(state: AppState & { user: any | null }, action: AppAction): 
     case 'SET_THEME':
       StorageService.setTheme(action.payload);
       if (state.user) {
-        RealtimeDatabaseService.setUserLikedSongs(state.user.uid, state.likedSongs);
+        FirestoreService.setUserLikedSongs(state.user.uid, state.likedSongs);
       }
       return { ...state, theme: action.payload };
     case 'SET_LANGUAGE':
       StorageService.setLanguage(action.payload);
       if (state.user) {
-        RealtimeDatabaseService.setUserLikedSongs(state.user.uid, state.likedSongs);
+        FirestoreService.setUserLikedSongs(state.user.uid, state.likedSongs);
       }
       return { ...state, language: action.payload };
     case 'SET_SEARCH_RESULTS':
@@ -119,6 +121,8 @@ function appReducer(state: AppState & { user: any | null }, action: AppAction): 
       return { ...state, themeLabel: action.payload };
     case 'SET_USER':
       return { ...state, user: action.payload };
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
     default:
       return state;
   }
@@ -134,6 +138,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
     async function fetchLanguageSuggestions() {
       try {
         let suggestions = [];
@@ -143,57 +148,74 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         } else {
           suggestions = await YouTubeService.searchVideos('songs', 20, state.language);
         }
-        dispatch({ type: 'SET_LANGUAGE_SUGGESTIONS', payload: suggestions });
+        if (isMounted) {
+          dispatch({ type: 'SET_LANGUAGE_SUGGESTIONS', payload: suggestions });
+        }
       } catch (error) {
         console.error('Error fetching language suggestions:', error);
-        dispatch({ type: 'SET_LANGUAGE_SUGGESTIONS', payload: [] });
+        if (isMounted) {
+          dispatch({ type: 'SET_LANGUAGE_SUGGESTIONS', payload: [] });
+        }
       }
     }
     fetchLanguageSuggestions();
+    return () => {
+      isMounted = false;
+    };
   }, [state.language]);
 
   useEffect(() => {
     let previousUserId: string | null = null;
 
-    const unsubscribe = onUserChanged(async (user) => {
+    const unsubscribe = onUserChanged((user) => {
+      dispatch({ type: 'SET_USER', payload: user });
+      dispatch({ type: 'SET_LOADING', payload: true });
       console.log('Firebase auth state changed:', user);
 
-      if (user) {
-        try {
-          // If user changed from anonymous to authenticated Google user, merge liked songs
-          if (previousUserId && previousUserId !== user.uid) {
-            const previousLikedSongs = await FirestoreService.getUserLikedSongs(previousUserId);
-            const currentLikedSongs = await FirestoreService.getUserLikedSongs(user.uid);
-            const mergedLikedSongsMap = new Map<string, YouTubeVideo>();
+      if (user && user.uid) {
+        (async () => {
+          try {
+            console.log(`User signed in: ${user.uid}, fetching liked songs...`);
+            // If user changed from anonymous to authenticated Google user, merge liked songs concurrently
+            if (previousUserId && previousUserId !== user.uid) {
+              const [previousLikedSongs, currentLikedSongs] = await Promise.all([
+                FirestoreService.getUserLikedSongs(previousUserId),
+                FirestoreService.getUserLikedSongs(user.uid),
+              ]);
+              const mergedLikedSongsMap = new Map<string, YouTubeVideo>();
 
-            previousLikedSongs.forEach(song => mergedLikedSongsMap.set(song.id, song));
-            currentLikedSongs.forEach(song => mergedLikedSongsMap.set(song.id, song));
+              previousLikedSongs.forEach(song => mergedLikedSongsMap.set(song.id, song));
+              currentLikedSongs.forEach(song => mergedLikedSongsMap.set(song.id, song));
 
-            const mergedLikedSongs = Array.from(mergedLikedSongsMap.values());
+              const mergedLikedSongs = Array.from(mergedLikedSongsMap.values());
 
-            await FirestoreService.setUserLikedSongs(user.uid, mergedLikedSongs);
-            dispatch({ type: 'SET_LIKED_SONGS', payload: mergedLikedSongs });
-          } else {
-            const likedSongs = await FirestoreService.getUserLikedSongs(user.uid);
-            console.log('Fetched liked songs from Firestore:', likedSongs);
-            if (Array.isArray(likedSongs) && likedSongs.length > 0) {
-              dispatch({ type: 'SET_LIKED_SONGS', payload: likedSongs });
+              await FirestoreService.setUserLikedSongs(user.uid, mergedLikedSongs);
+              console.log('Merged liked songs:', mergedLikedSongs);
+              dispatch({ type: 'SET_LIKED_SONGS', payload: mergedLikedSongs });
             } else {
-              console.log('No liked songs found in Firestore or empty array');
-              dispatch({ type: 'SET_LIKED_SONGS', payload: [] });
+              const likedSongs = await FirestoreService.getUserLikedSongs(user.uid);
+              console.log('Fetched liked songs from Firestore:', likedSongs);
+              if (Array.isArray(likedSongs) && likedSongs.length > 0) {
+                dispatch({ type: 'SET_LIKED_SONGS', payload: likedSongs });
+              } else {
+                console.log('No liked songs found in Firestore or empty array');
+                dispatch({ type: 'SET_LIKED_SONGS', payload: [] });
+              }
             }
+          } catch (error) {
+            console.error('Error fetching user data from Firestore:', error);
+          } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
           }
-        } catch (error) {
-          console.error('Error fetching user data from Firestore:', error);
-        }
+        })();
       } else {
         // Clear local storage liked songs on sign-out to avoid conflicts
         StorageService.setLikedSongs([]);
         dispatch({ type: 'LOAD_STORAGE_DATA' });
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
 
       previousUserId = user ? user.uid : null;
-      dispatch({ type: 'SET_USER', payload: user });
     });
 
     return () => unsubscribe();
@@ -220,7 +242,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const toggleLikeSong = (track: YouTubeVideo) => {
+  const toggleLikeSong = async (track: YouTubeVideo) => {
     let updatedLikedSongs = [...state.likedSongs];
     const index = updatedLikedSongs.findIndex((t) => t.id === track.id);
     if (index === -1) {
@@ -230,6 +252,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
     console.log('Toggling liked songs, updated list:', updatedLikedSongs);
     dispatch({ type: 'SET_LIKED_SONGS', payload: updatedLikedSongs });
+    if (state.user) {
+      try {
+        console.log(`Saving liked songs to Firestore for user ${state.user.uid}`);
+        await FirestoreService.setUserLikedSongs(state.user.uid, updatedLikedSongs);
+        console.log('Liked songs saved to Firestore');
+        // Fetch updated liked songs from Firestore and update state
+        const refreshedLikedSongs = await FirestoreService.getUserLikedSongs(state.user.uid);
+        console.log('Refreshed liked songs from Firestore:', refreshedLikedSongs);
+        dispatch({ type: 'SET_LIKED_SONGS', payload: refreshedLikedSongs });
+      } catch (error) {
+        console.error('Error saving liked songs to Firestore:', error);
+      }
+    } else {
+      StorageService.setLikedSongs(updatedLikedSongs);
+    }
   };
 
   const setVideoPlaying = (playing: boolean) => {
