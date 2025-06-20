@@ -85,12 +85,13 @@ function AppContent() {
 
   return (
     <div
-      className={`min-h-screen bg-glass text-white ${state.theme}`}
+      className={`min-h-screen bg-glass text-white ${state.theme} ${
+        isMobile ? 'px-2 sm:px-4' : ''
+      }`}
       style={{
-        transform: isMobile ? 'scale(0.9)' : 'none',
-        transformOrigin: 'top center',
-        width: isMobile ? '100vw' : 'auto',
-        overflowX: isMobile ? 'hidden' : 'visible',
+        // Removed transform scale for better responsiveness
+        width: '100%',
+        overflowX: 'hidden',
       }}
     >
       {/* Animated background effects */}
