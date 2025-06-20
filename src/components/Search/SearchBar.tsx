@@ -22,10 +22,17 @@ export function SearchBar() {
 
     setIsLoading(true);
     try {
-      const results = await YouTubeService.searchVideos(query, 20, state.language);
+      console.log(`Searching for "${query}" with language "${state.language}"`);
+      let results = await YouTubeService.searchVideos(query, 20, state.language);
+      if (results.length === 0 && state.language !== 'all') {
+        console.log('No results found with current language filter, retrying with language "all"');
+        results = await YouTubeService.searchVideos(query, 20, 'all');
+      }
       dispatch({ type: 'SET_SEARCH_RESULTS', payload: results });
+      console.log(`Search returned ${results.length} results`);
     } catch (error) {
       console.error('Search failed:', error);
+      dispatch({ type: 'SET_SEARCH_RESULTS', payload: [] });
     } finally {
       setIsLoading(false);
     }
