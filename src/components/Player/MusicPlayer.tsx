@@ -109,11 +109,44 @@ export function MusicPlayer({
                 });
               }
             },
-            onStateChange: (event: any) => {
+            onStateChange: async (event: any) => {
               if (event.data === (window as any).YT.PlayerState.PLAYING) {
                 dispatch({ type: 'SET_PLAYING', payload: true });
-              } else if (event.data === (window as any).YT.PlayerState.PAUSED || event.data === (window as any).YT.PlayerState.ENDED) {
+              } else if (event.data === (window as any).YT.PlayerState.PAUSED) {
                 dispatch({ type: 'SET_PLAYING', payload: false });
+              } else if (event.data === (window as any).YT.PlayerState.ENDED) {
+                dispatch({ type: 'SET_PLAYING', payload: false });
+                // Play next song based on genre and theme
+                if (state.currentTrack !== null) {
+                  const buildSearchQuery = () => {
+                    // Attempt to use genre and theme if available, else fallback to title and channelTitle
+                    const genre = (state.currentTrack as any).genre || '';
+                    const theme = (state.currentTrack as any).theme || '';
+                    const title = state.currentTrack.title || '';
+                    const channel = state.currentTrack.channelTitle || '';
+                    let queryParts = [];
+                    if (genre) queryParts.push(genre);
+                    if (theme) queryParts.push(theme);
+                    if (!genre && !theme) {
+                      // fallback to title and channel
+                      queryParts.push(title);
+                      queryParts.push(channel);
+                    }
+                    return queryParts.join(' ') + ' song';
+                  };
+
+                  const query = buildSearchQuery();
+                  try {
+                    const results = await YouTubeService.searchVideos(query, 20);
+                    if (results.length > 0) {
+                      const randomIndex = Math.floor(Math.random() * results.length);
+                      const randomVideo = results[randomIndex];
+                      playTrack(randomVideo);
+                    }
+                  } catch (error) {
+                    console.error('Error fetching next song:', error);
+                  }
+                }
               }
             },
           },
