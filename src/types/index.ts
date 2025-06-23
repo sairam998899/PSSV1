@@ -13,6 +13,12 @@ export interface Track extends YouTubeVideo {
   language?: string;
 }
 
+export interface Playlist {
+  id: string;
+  name: string;
+  tracks: YouTubeVideo[];
+}
+
 export type Theme = 'dark' | 'neon' | 'purple' | 'blue';
 export type Language = 'en' | 'hi' | 'te' | 'ta' | 'all';
 
@@ -22,6 +28,7 @@ export interface AppState {
   recentlyPlayed: Track[];
   history: Track[];
   likedSongs: YouTubeVideo[];
+  userPlaylists: Playlist[];
   theme: Theme;
   language: Language;
   searchResults: YouTubeVideo[];

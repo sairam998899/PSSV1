@@ -12,6 +12,7 @@ type AppAction =
   | { type: 'SET_SEARCH_RESULTS'; payload: YouTubeVideo[] }
   | { type: 'SET_TRENDING'; payload: YouTubeVideo[] }
   | { type: 'SET_LIKED_SONGS'; payload: YouTubeVideo[] }
+  | { type: 'SET_USER_PLAYLISTS'; payload: Playlist[] }
   | { type: 'SET_PLAY_VIDEO'; payload: boolean }
   | { type: 'SET_VIDEO_PLAYING'; payload: boolean }
   | { type: 'SET_VIDEO_ID'; payload: string | null }
@@ -101,6 +102,11 @@ function appReducer(state: AppState & { user: any | null; loading: boolean }, ac
         StorageService.setLikedSongs(action.payload);
       }
       return { ...state, likedSongs: action.payload };
+    case 'SET_USER_PLAYLISTS':
+      if (state.user) {
+        FirestoreService.setUserPlaylists(state.user.uid, action.payload);
+      }
+      return { ...state, userPlaylists: action.payload };
     case 'SET_LANGUAGE_SUGGESTIONS':
       return { ...state, languageSuggestions: action.payload };
     case 'SET_CARD_MINIMIZED':
@@ -114,6 +120,7 @@ function appReducer(state: AppState & { user: any | null; loading: boolean }, ac
           likedSongs: StorageService.getLikedSongs(),
           theme: StorageService.getTheme() as Theme,
           language: StorageService.getLanguage() as Language,
+          userPlaylists: [], // Initialize empty playlists for unauthenticated users
         };
       }
       return state;
@@ -175,7 +182,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (user && user.uid) {
         (async () => {
           try {
-            console.log(`User signed in: ${user.uid}, fetching liked songs...`);
+            console.log(`User signed in: ${user.uid}, fetching liked songs and playlists...`);
             // If user changed from anonymous to authenticated Google user, merge liked songs concurrently
             if (previousUserId && previousUserId !== user.uid) {
               const [previousLikedSongs, currentLikedSongs] = await Promise.all([
@@ -192,6 +199,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               await FirestoreService.setUserLikedSongs(user.uid, mergedLikedSongs);
               console.log('Merged liked songs:', mergedLikedSongs);
               dispatch({ type: 'SET_LIKED_SONGS', payload: mergedLikedSongs });
+
+              // Merge playlists similarly
+              const [previousPlaylists, currentPlaylists] = await Promise.all([
+                FirestoreService.getUserPlaylists(previousUserId),
+                FirestoreService.getUserPlaylists(user.uid),
+              ]);
+              const mergedPlaylistsMap = new Map<string, Playlist>();
+
+              previousPlaylists.forEach(pl => mergedPlaylistsMap.set(pl.id, pl));
+              currentPlaylists.forEach(pl => mergedPlaylistsMap.set(pl.id, pl));
+
+              const mergedPlaylists = Array.from(mergedPlaylistsMap.values());
+
+              await FirestoreService.setUserPlaylists(user.uid, mergedPlaylists);
+              console.log('Merged playlists:', mergedPlaylists);
+              dispatch({ type: 'SET_USER_PLAYLISTS', payload: mergedPlaylists });
             } else {
               const likedSongs = await FirestoreService.getUserLikedSongs(user.uid);
               console.log('Fetched liked songs from Firestore:', likedSongs);
@@ -200,6 +223,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               } else {
                 console.log('No liked songs found in Firestore or empty array');
                 dispatch({ type: 'SET_LIKED_SONGS', payload: [] });
+              }
+
+              const playlists = await FirestoreService.getUserPlaylists(user.uid);
+              console.log('Fetched playlists from Firestore:', playlists);
+              if (Array.isArray(playlists) && playlists.length > 0) {
+                dispatch({ type: 'SET_USER_PLAYLISTS', payload: playlists });
+              } else {
+                dispatch({ type: 'SET_USER_PLAYLISTS', payload: [] });
               }
             }
           } catch (error) {

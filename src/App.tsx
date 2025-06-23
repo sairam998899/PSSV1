@@ -13,7 +13,9 @@ import LikedSongs from './components/Sections/LikedSongs';
 import { Home, Search, TrendingUp, Clock, Heart } from 'lucide-react';
 import MobilePrompt from './components/Layout/MobilePrompt';
 
-type Tab = 'home' | 'search' | 'trending' | 'history' | 'liked';
+type Tab = 'home' | 'search' | 'trending' | 'history' | 'liked' | 'playlists';
+
+import { Playlists } from './components/Sections/Playlists';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
@@ -28,6 +30,7 @@ function AppContent() {
     { id: 'trending', label: 'Trending', icon: TrendingUp },
     { id: 'history', label: 'History', icon: Clock },
     { id: 'liked', label: 'Liked Songs', icon: Heart },
+    { id: 'playlists', label: 'Playlists', icon: Heart },
   ];
 
   useEffect(() => {
@@ -57,6 +60,8 @@ function AppContent() {
         return <History />;
       case 'liked':
         return <LikedSongs />;
+      case 'playlists':
+        return <Playlists />;
       default:
         return <RecentlyPlayed />;
     }
