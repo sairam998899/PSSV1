@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, SkipForward, SkipBack, Volume2, Heart } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Volume2, Heart, Repeat } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { YouTubeService } from '../../services/youtube';
 import { MusicCard } from './MusicCard';
@@ -28,12 +28,14 @@ export function MusicPlayer({
 }: MusicPlayerProps) {
   const { state, dispatch, toggleLikeSong, playTrack, setUserMinimized } = useApp();
   const playerRef = useRef<HTMLDivElement>(null);
+  const repeatModeRef = useRef(false);
   const [player, setPlayer] = useState<any>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(50);
   const [isReady, setIsReady] = useState(false);
   const [lastSkipBackPress, setLastSkipBackPress] = useState<number | null>(null);
+  const [repeatMode, setRepeatMode] = useState(false);
 
   // Helper function to format seconds to mm:ss
   const formatTime = (seconds: number) => {
@@ -43,6 +45,13 @@ export function MusicPlayer({
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  const toggleRepeatMode = () => {
+    setRepeatMode((prev) => {
+      repeatModeRef.current = !prev;
+      return !prev;
+    });
   };
 
   useEffect(() => {
@@ -116,35 +125,45 @@ export function MusicPlayer({
                 dispatch({ type: 'SET_PLAYING', payload: false });
               } else if (event.data === (window as any).YT.PlayerState.ENDED) {
                 dispatch({ type: 'SET_PLAYING', payload: false });
-                // Play next song based on genre and theme
-                if (state.currentTrack !== null) {
-                  const buildSearchQuery = () => {
-                    // Attempt to use genre and theme if available, else fallback to title and channelTitle
-                    const genre = (state.currentTrack as any).genre || '';
-                    const theme = (state.currentTrack as any).theme || '';
-                    const title = state.currentTrack.title || '';
-                    const channel = state.currentTrack.channelTitle || '';
-                    let queryParts = [];
-                    if (genre) queryParts.push(genre);
-                    if (theme) queryParts.push(theme);
-                    if (!genre && !theme) {
-                      // fallback to title and channel
-                      queryParts.push(title);
-                      queryParts.push(channel);
+                if (repeatModeRef.current && player) {
+                  console.log('Repeat mode active: restarting current track');
+                  setTimeout(() => {
+                    if (player) {
+                      player.seekTo(0, true);
+                      player.playVideo();
                     }
-                    return queryParts.join(' ') + ' song';
-                  };
+                  }, 200);
+                } else {
+                  // Play next song based on genre and theme
+                  if (state.currentTrack !== null) {
+                    const buildSearchQuery = () => {
+                      // Attempt to use genre and theme if available, else fallback to title and channelTitle
+                      const genre = (state.currentTrack as any).genre || '';
+                      const theme = (state.currentTrack as any).theme || '';
+                      const title = state.currentTrack.title || '';
+                      const channel = state.currentTrack.channelTitle || '';
+                      let queryParts = [];
+                      if (genre) queryParts.push(genre);
+                      if (theme) queryParts.push(theme);
+                      if (!genre && !theme) {
+                        // fallback to title and channel
+                        queryParts.push(title);
+                        queryParts.push(channel);
+                      }
+                      return queryParts.join(' ') + ' song';
+                    };
 
-                  const query = buildSearchQuery();
-                  try {
-                    const results = await YouTubeService.searchVideos(query, 20);
-                    if (results.length > 0) {
-                      const randomIndex = Math.floor(Math.random() * results.length);
-                      const randomVideo = results[randomIndex];
-                      playTrack(randomVideo);
+                    const query = buildSearchQuery();
+                    try {
+                      const results = await YouTubeService.searchVideos(query, 20);
+                      if (results.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * results.length);
+                        const randomVideo = results[randomIndex];
+                        playTrack(randomVideo);
+                      }
+                    } catch (error) {
+                      console.error('Error fetching next song:', error);
                     }
-                  } catch (error) {
-                    console.error('Error fetching next song:', error);
                   }
                 }
               }
@@ -213,13 +232,20 @@ export function MusicPlayer({
     };
   }, [player, isReady, state.isPlaying]);
 
-  // New effect to update currentTime periodically while playing
+  // New effect to update currentTime periodically while playing and handle repeat
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
     if (player && isReady && state.isPlaying) {
       interval = setInterval(() => {
         const time = player.getCurrentTime();
+        const dur = player.getDuration();
         setCurrentTime(time);
+        setDuration(dur);
+        if (repeatModeRef.current && dur > 0 && time >= dur - 0.5) {
+          console.log('Repeat mode active: restarting current track via polling');
+          player.seekTo(0, true);
+          player.playVideo();
+        }
       }, 500);
     } else if (!state.isPlaying && interval) {
       clearInterval(interval);
@@ -385,14 +411,26 @@ export function MusicPlayer({
                     )}
                   </motion.button>
 
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={handleNext}
-                    className="p-1 sm:p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
-                  >
-                    <SkipForward className="h-4 sm:h-5 w-4 sm:w-5 text-white" />
-                  </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={handleNext}
+                  className="p-1 sm:p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
+                >
+                  <SkipForward className="h-4 sm:h-5 w-4 sm:w-5 text-white" />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={toggleRepeatMode}
+                  className={`p-1 sm:p-2 rounded-full transition-colors ${
+                    repeatMode ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 hover:bg-gray-700'
+                  }`}
+                  aria-label="Toggle Repeat"
+                  title="Toggle Repeat"
+                >
+                  <Repeat className="h-4 sm:h-5 w-4 sm:w-5 text-white" />
+                </motion.button>
                 </div>
 
                 <div className="flex items-center space-x-4 flex-1 justify-end min-w-[150px] max-w-full">
