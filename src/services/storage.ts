@@ -43,7 +43,14 @@ export class StorageService {
   static getHistory(): Track[] {
     try {
       const data = localStorage.getItem(HISTORY_KEY);
-      return data ? JSON.parse(data) : [];
+      if (data) {
+        const tracks = JSON.parse(data);
+        return tracks.map((track: any) => ({
+          ...track,
+          playedAt: new Date(track.playedAt),
+        }));
+      }
+      return [];
     } catch {
       return [];
     }

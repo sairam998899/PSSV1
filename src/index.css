@@ -62,3 +62,13 @@
 .search-results-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.4) !important;
 }
+
+/* Hide scrollbar utility class */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
