@@ -1,4 +1,6 @@
-import React from 'react';
+import TextType from '../TextType';
+import FuzzyText from '../FuzzyText';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Music, Settings, Globe, Palette } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
@@ -6,6 +8,8 @@ import { Theme, Language } from '../../types';
 
 export function Header() {
   const { state, dispatch, signInWithGoogle, signOutUser } = useApp();
+  const [hoverIntensity, setHoverIntensity] = useState(0.5);
+  const [enableHover, setEnableHover] = useState(true);
 
   const themes: { value: Theme; label: string; gradient: string }[] = [
     { value: 'dark', label: 'Dark', gradient: 'from-gray-900 to-gray-800' },
@@ -37,10 +41,26 @@ export function Header() {
               <Music className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-glow-blue to-neon-aqua bg-clip-text text-transparent dark:text-white text-white">
-                HPSS
-              </h1>
-              <p className="text-xs text-gray-400">Hanumanthu Private streaming service</p>
+              <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-glow-blue to-neon-aqua bg-clip-text text-transparent dark:text-white text-white">
+                <FuzzyText
+                  baseIntensity={0.2}
+                  hoverIntensity={hoverIntensity}
+                  enableHover={enableHover}
+                  fontSize="clamp(1.25rem, 2.5vw, 2rem)"
+                  fontWeight={700}
+                  color="#fff"
+                >
+                  HPSS
+                </FuzzyText>
+              </div>
+              <TextType
+                text={["Hanumanthu Private streaming service"]}
+                typingSpeed={75}
+                pauseDuration={1500}
+                showCursor={true}
+                cursorCharacter="|"
+                className="text-xs text-gray-400"
+              />
             </div>
           </motion.div>
 
