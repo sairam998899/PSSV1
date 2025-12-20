@@ -114,16 +114,18 @@ export function History() {
                   day: 'numeric' 
                 })}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {tracks.map((track, index) => (
-                  <TrackCard
-                    key={`${track.id}-${track.playedAt}`}
-                    track={track}
-                    index={index}
-                    showPlayedAt
-                    playedAt={track.playedAt}
-                  />
-                ))}
+              <div className="overflow-x-auto pb-4 hide-scrollbar">
+                <div className="flex space-x-4 min-w-max">
+                  {tracks.map((track, index) => (
+                    <TrackCard
+                      key={`${track.id}-${track.playedAt}`}
+                      track={track}
+                      index={index}
+                      showPlayedAt
+                      playedAt={track.playedAt}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           ))}

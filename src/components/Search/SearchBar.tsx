@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Loader, Clock, TrendingUp } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { YouTubeService } from '../../services/youtube';
-import { TrackCard } from '../Tracks/TrackCard';
+import { SearchSuggestionCard } from '../Tracks/SearchSuggestionCard';
 
 const scrollbarStyles = `
   .search-results-scroll {
@@ -200,7 +200,7 @@ export function SearchBar() {
                         onClick={() => handleSearch(undefined, track.title)}
                         className="cursor-pointer"
                       >
-                        <TrackCard track={track} index={index} />
+                        <SearchSuggestionCard track={track} index={index} />
                       </div>
                     ))}
                   </div>
