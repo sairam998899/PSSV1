@@ -134,7 +134,7 @@ export function History() {
                       weekday: 'short',
                       month: 'short',
                       day: 'numeric',
-                      year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                      year: new Date(date).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
                     })}
                   </h3>
                 </div>
