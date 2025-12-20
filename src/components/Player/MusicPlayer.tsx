@@ -133,8 +133,23 @@ export function MusicPlayer({
                   }
                 });
                 navigator.mediaSession.setActionHandler('nexttrack', async () => {
-                  if (state.currentTrack!.channelTitle) {
-                    const results = await YouTubeService.searchVideos(state.currentTrack!.channelTitle + ' song', 20);
+                  if (state.currentTrack) {
+                    const currentTrackInHistory = state.history.find(track => track.id === state.currentTrack!.id);
+                    const language = currentTrackInHistory?.language;
+                    const year = currentTrackInHistory?.year;
+
+                    let query = '';
+                    if (language && year) {
+                      query = `${language} songs ${year}`;
+                    } else if (language) {
+                      query = `${language} songs`;
+                    } else if (year) {
+                      query = `songs ${year}`;
+                    } else {
+                      query = state.currentTrack.channelTitle + ' song';
+                    }
+
+                    const results = await YouTubeService.searchVideos(query, 20);
                     if (results.length > 0) {
                       const randomIndex = Math.floor(Math.random() * results.length);
                       const randomVideo = results[randomIndex];
@@ -182,23 +197,31 @@ export function MusicPlayer({
                     }
                   }, 200);
                 } else {
-                  // Play next song based on genre and theme
+                  // Play next song based on language and year
                   if (state.currentTrack !== null) {
                     const buildSearchQuery = () => {
-                      // Attempt to use genre and theme if available, else fallback to title and channelTitle
-                      const genre = (state.currentTrack as any).genre || '';
-                      const theme = (state.currentTrack as any).theme || '';
-      const title = state.currentTrack!.title || '';
-      const channel = state.currentTrack!.channelTitle || '';
+                      // Get current track's language and year from history (most recent entry)
+                      const currentTrackInHistory = state.history.find(track => track.id === state.currentTrack!.id);
+                      const language = currentTrackInHistory?.language;
+                      const year = currentTrackInHistory?.year;
+
                       let queryParts = [];
-                      if (genre) queryParts.push(genre);
-                      if (theme) queryParts.push(theme);
-                      if (!genre && !theme) {
-                        // fallback to title and channel
-                        queryParts.push(title);
-                        queryParts.push(channel);
+
+                      if (language && year) {
+                        // Best case: both language and year available
+                        queryParts.push(language, 'songs', year.toString());
+                      } else if (language) {
+                        // Language available, no year
+                        queryParts.push(language, 'songs');
+                      } else if (year) {
+                        // Year available, no language
+                        queryParts.push('songs', year.toString());
+                      } else {
+                        // Fallback to artist/channel based search
+                        queryParts.push(state.currentTrack!.channelTitle, 'song');
                       }
-                      return queryParts.join(' ') + ' song';
+
+                      return queryParts.join(' ');
                     };
 
                     const query = buildSearchQuery();

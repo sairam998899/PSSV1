@@ -1,9 +1,19 @@
-# Remove Test Capacitor Button - COMPLETED
+# Redesign Music Algorithm Task
 
-- [x] Remove useCapacitor import from Header.tsx
-- [x] Remove useCapacitor hook destructuring from Header.tsx
-- [x] Remove the "Test Capacitor" button element from Header.tsx JSX
-- [x] Remove Capacitor import from main.tsx
-- [x] Remove useCapacitor import and usage from App.tsx
-- [x] Create simple test App.tsx to verify React is working
-- [x] Restore full application without Capacitor dependencies
+## Current Status
+- Analyzed current algorithm that uses undefined genre/theme fields
+- Identified need to extract language and year from song metadata
+- Plan approved by user to proceed without breaking existing components
+
+## Tasks
+- [ ] Update Track interface to include 'year' field
+- [ ] Create utility function to extract language and year from song title/publishedAt
+- [ ] Modify MusicPlayer next song logic to use language/year matching
+- [ ] Update playTrack function to populate metadata
+- [ ] Test the new algorithm with various songs
+
+## Files to Modify
+- src/types/index.ts - Add year field to Track
+- src/lib/utils.ts - Add extraction utility
+- src/components/Player/MusicPlayer.tsx - Update next song algorithm
+- src/contexts/AppContext.tsx - Update playTrack to populate metadata

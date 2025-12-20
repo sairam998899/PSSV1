@@ -3,6 +3,7 @@ import { AppState, YouTubeVideo, Track, Theme, Language } from '../types';
 import { StorageService } from '../services/storage';
 import { FirestoreService } from '../services/firestore';
 import { signInWithGoogle, signOut, onUserChanged } from '../firebase';
+import { extractSongMetadata } from '../lib/utils';
 
 type AppAction =
   | { type: 'SET_CURRENT_TRACK'; payload: YouTubeVideo }

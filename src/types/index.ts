@@ -11,6 +11,7 @@ export interface YouTubeVideo {
 export interface Track extends YouTubeVideo {
   playedAt: Date;
   language?: string;
+  year?: number;
 }
 
 export interface Playlist {
