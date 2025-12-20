@@ -10,7 +10,7 @@ import { SearchResults } from './components/Sections/SearchResults';
 import { Trending } from './components/Sections/Trending';
 import { History } from './components/Sections/History';
 import LikedSongs from './components/Sections/LikedSongs';
-import { Home, Search, TrendingUp, Clock, Heart } from 'lucide-react';
+import { Home, Search, TrendingUp, Clock, Heart, Smartphone } from 'lucide-react';
 import MobilePrompt from './components/Layout/MobilePrompt';
 
 type Tab = 'home' | 'search' | 'trending' | 'history' | 'liked' | 'playlists';

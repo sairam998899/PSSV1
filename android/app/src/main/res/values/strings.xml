@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">hpss</string>
+    <string name="title_activity_main">hpss</string>
+    <string name="package_name">com.hpss.app</string>
+    <string name="custom_url_scheme">com.hpss.app</string>
+</resources>
