@@ -21,7 +21,7 @@ export interface Playlist {
 }
 
 export type Theme = 'dark' | 'neon' | 'purple' | 'blue';
-export type Language = 'en' | 'hi' | 'te' | 'ta' | 'all';
+export type Language = 'en' | 'hi' | 'te' | 'ta' | 'pa' | 'all';
 
 export interface AppState {
   currentTrack: YouTubeVideo | null;
@@ -42,4 +42,3 @@ export interface AppState {
   userMinimized: boolean;
   themeLabel: string;
 }
-</create_file>

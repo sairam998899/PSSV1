@@ -10,6 +10,7 @@ import { SearchResults } from './components/Sections/SearchResults';
 import { Trending } from './components/Sections/Trending';
 import { History } from './components/Sections/History';
 import LikedSongs from './components/Sections/LikedSongs';
+import { AlbumView } from './components/Sections/AlbumView';
 import { Home, Search, TrendingUp, Clock, Heart, Smartphone } from 'lucide-react';
 import MobilePrompt from './components/Layout/MobilePrompt';
 
